@@ -1,0 +1,237 @@
+version: '3.8'
+
+# ═══════════════════════════════════════════════════════
+# MINI-ALADDIN — Docker Compose (Phase 1)
+# ═══════════════════════════════════════════════════════
+# Start: docker-compose up -d
+# Stop:  docker-compose down
+# Logs:  docker-compose logs -f [service-name]
+# ═══════════════════════════════════════════════════════
+
+services:
+
+  # ─── Databases ────────────────────────────────────────
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: aladdin-redis
+    restart: always
+    command: >
+      redis-server
+      --maxmemory 8gb
+      --maxmemory-policy allkeys-lru
+      --appendonly yes
+      --appendfsync everysec
+      --hz 100
+      --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+      - ./database/redis/redis.conf:/usr/local/etc/redis/redis.conf
+    ports:
+      - "127.0.0.1:6379:6379"   # Only localhost — not exposed externally
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: aladdin-postgres
+    restart: always
+    environment:
+      POSTGRES_DB:       ${PG_DATABASE}
+      POSTGRES_USER:     ${PG_USER}
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/postgres/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    ports:
+      - "127.0.0.1:5432:5432"   # Only localhost
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PG_USER} -d ${PG_DATABASE}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Core Trading Services ─────────────────────────────
+
+  kill-switch:
+    build: .
+    container_name: aladdin-killswitch
+    restart: always
+    command: node backend/emergency/kill-switch.js
+    env_file: ./config/.env
+    depends_on:
+      redis:
+        condition: service_healthy
+    # Kill switch gets highest priority
+    cpu_shares: 1024
+
+  gateway:
+    build: .
+    container_name: aladdin-gateway
+    restart: always
+    command: node backend/gateway/gateway.js
+    env_file: ./config/.env
+    depends_on:
+      redis:
+        condition: service_healthy
+      kill-switch:
+        condition: service_started
+    cpu_shares: 512
+
+  worker-price:
+    build: .
+    container_name: aladdin-worker-price
+    restart: always
+    command: node backend/workers/price-action.js
+    env_file: ./config/.env
+    depends_on:
+      - gateway
+
+  worker-volume:
+    build: .
+    container_name: aladdin-worker-volume
+    restart: always
+    command: node backend/workers/volume-worker.js
+    env_file: ./config/.env
+    depends_on:
+      - gateway
+
+  worker-orderflow:
+    build: .
+    container_name: aladdin-worker-orderflow
+    restart: always
+    command: node backend/workers/orderflow-worker.js
+    env_file: ./config/.env
+    depends_on:
+      - gateway
+
+  worker-options:
+    build: .
+    container_name: aladdin-worker-options
+    restart: always
+    command: node backend/workers/options-worker.js
+    env_file: ./config/.env
+    depends_on:
+      - gateway
+
+  worker-breadth:
+    build: .
+    container_name: aladdin-worker-breadth
+    restart: always
+    command: node backend/workers/breadth-worker.js
+    env_file: ./config/.env
+    depends_on:
+      - gateway
+
+  worker-volatility:
+    build: .
+    container_name: aladdin-worker-volatility
+    restart: always
+    command: node backend/workers/volatility-worker.js
+    env_file: ./config/.env
+    depends_on:
+      - gateway
+
+  worker-news:
+    build: .
+    container_name: aladdin-worker-news
+    restart: always
+    command: node backend/workers/news-worker.js
+    env_file: ./config/.env
+    depends_on:
+      - gateway
+
+  worker-fii:
+    build: .
+    container_name: aladdin-worker-fii
+    restart: always
+    command: node backend/workers/fii-flow-worker.js
+    env_file: ./config/.env
+    depends_on:
+      - gateway
+
+  worker-mtf:
+    build: .
+    container_name: aladdin-worker-mtf
+    restart: always
+    command: node backend/workers/mtf-worker.js
+    env_file: ./config/.env
+    depends_on:
+      - gateway
+
+  master:
+    build: .
+    container_name: aladdin-master
+    restart: always
+    command: node backend/master/master-agent.js
+    env_file: ./config/.env
+    depends_on:
+      - worker-price
+      - worker-volume
+      - worker-orderflow
+
+  risk:
+    build: .
+    container_name: aladdin-risk
+    restart: always
+    command: node backend/risk/risk-agent.js
+    env_file: ./config/.env
+    depends_on:
+      - master
+
+  execution:
+    build: .
+    container_name: aladdin-execution
+    restart: always
+    command: node backend/execution/execution-agent.js
+    env_file: ./config/.env
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
+  shadow-trader:
+    build: .
+    container_name: aladdin-shadow
+    restart: always
+    command: node backend/learning/shadow-trading-agent.js
+    env_file: ./config/.env
+    depends_on:
+      - gateway
+      - worker-price
+      - worker-orderflow
+    profiles:
+      - trading
+
+  monitor:
+    build: .
+    container_name: aladdin-monitor
+    restart: always
+    command: node backend/monitoring/monitor.js
+    env_file: ./config/.env
+    depends_on:
+      - redis
+      - postgres
+
+  api:
+    build: .
+    container_name: aladdin-api
+    restart: always
+    command: node backend/api/rest-api.js
+    env_file: ./config/.env
+    ports:
+      - "127.0.0.1:3000:3000"   # Only localhost — Nginx proxies this
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+# ─── Volumes ──────────────────────────────────────────────
+volumes:
+  redis_data:
+    driver: local
+  postgres_data:
+    driver: local

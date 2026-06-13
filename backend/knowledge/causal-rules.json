@@ -1,0 +1,165 @@
+{
+  "_comment": "Causal Rules Dictionary — Phase 1 Knowledge Layer",
+  "_comment2": "Neo4j ki jagah. Sirf rules. Pre-loaded to Redis at 9:00 AM.",
+  "_comment3": "Add rules yahan. System automatically use karega.",
+
+  "CRUDE_RISE_3PCT": {
+    "avoid":    ["BANKNIFTY_LONG", "AIRLINE_LONG", "PAINT_LONG"],
+    "prefer":   ["ONGC_LONG", "PSE_LONG", "OIL_SECTOR_LONG"],
+    "note":     "Crude rise = inflation pressure = bank margin risk",
+    "duration_sessions": 2
+  },
+
+  "CRUDE_FALL_3PCT": {
+    "avoid":    ["ONGC_LONG", "PSE_LONG"],
+    "prefer":   ["AVIATION_LONG", "PAINT_LONG", "LOGISTICS_LONG"],
+    "note":     "Crude fall = input cost benefit for consumers",
+    "duration_sessions": 2
+  },
+
+  "USDINR_RISE_1PCT": {
+    "avoid":    ["IT_SHORT", "IMPORT_HEAVY_LONG"],
+    "prefer":   ["IT_LONG", "PHARMA_EXPORT_LONG"],
+    "note":     "Rupee weakening = IT earners benefit (USD revenue)",
+    "duration_sessions": 1
+  },
+
+  "USDINR_FALL_1PCT": {
+    "avoid":    ["IT_LONG"],
+    "prefer":   ["IMPORT_LONG", "METAL_LONG"],
+    "note":     "Rupee strengthening = IT revenue shrinks in INR",
+    "duration_sessions": 1
+  },
+
+  "FII_SELL_2000CR": {
+    "avoid":    ["ALL_LONG", "INDEX_LONG"],
+    "prefer":   ["GOLD_HEDGE", "DEFENSIVE_LONG"],
+    "action":   "REDUCE_SIZE_50PCT",
+    "note":     "Large FII selling = index pressure next 1-2 sessions",
+    "duration_sessions": 1
+  },
+
+  "FII_BUY_2000CR": {
+    "avoid":    [],
+    "prefer":   ["NIFTY_LONG", "BANK_LONG"],
+    "action":   "NORMAL_SIZE",
+    "note":     "Large FII buying = positive backdrop",
+    "duration_sessions": 1
+  },
+
+  "VIX_ABOVE_20": {
+    "avoid":    ["ALL_DIRECTIONAL"],
+    "prefer":   [],
+    "action":   "REDUCE_SIZE_50PCT",
+    "note":     "VIX > 20 = elevated fear = widen stops, reduce size",
+    "duration_sessions": 0
+  },
+
+  "VIX_ABOVE_25": {
+    "avoid":    ["ALL_DIRECTIONAL"],
+    "prefer":   [],
+    "action":   "KILL_SWITCH_STANDBY",
+    "note":     "VIX > 25 = danger zone = kill switch watching",
+    "duration_sessions": 0
+  },
+
+  "VIX_SPIKE_20PCT_30MIN": {
+    "avoid":    ["ALL_DIRECTIONAL"],
+    "prefer":   [],
+    "action":   "PAUSE_NEW_ENTRIES",
+    "note":     "Sudden VIX spike = unknown news event = wait",
+    "duration_sessions": 0
+  },
+
+  "BOND_YIELD_RISE_10BPS": {
+    "avoid":    ["REALTY_LONG", "HIGH_PE_LONG", "GROWTH_STOCK_LONG"],
+    "prefer":   ["VALUE_LONG", "PSU_BANK_LONG"],
+    "note":     "Rising yields = rate hike fear = growth stocks re-rate",
+    "duration_sessions": 3
+  },
+
+  "RBI_HAWKISH_SURPRISE": {
+    "avoid":    ["REALTY_LONG", "BANK_LONG", "NBFC_LONG"],
+    "prefer":   ["NIFTY_SHORT"],
+    "action":   "PAUSE_NEW_ENTRIES_1HR",
+    "note":     "Hawkish RBI = liquidity tightening = sell",
+    "duration_sessions": 2
+  },
+
+  "RBI_DOVISH_SURPRISE": {
+    "avoid":    [],
+    "prefer":   ["BANK_LONG", "REALTY_LONG", "AUTO_LONG"],
+    "note":     "Dovish RBI = rate cut hopes = rate-sensitive sectors up",
+    "duration_sessions": 2
+  },
+
+  "GOLD_RISE_2PCT": {
+    "avoid":    ["ALL_LONG"],
+    "prefer":   [],
+    "action":   "RISK_OFF_MODE",
+    "note":     "Gold rising fast = global risk-off = FII may sell India",
+    "duration_sessions": 1
+  },
+
+  "AD_RATIO_BELOW_0_5": {
+    "avoid":    ["INDEX_LONG", "BROAD_MARKET_LONG"],
+    "prefer":   [],
+    "note":     "Breadth failure. Index up but most stocks down = distribution",
+    "duration_sessions": 0
+  },
+
+  "SGX_NIFTY_GAP_DOWN_1PCT": {
+    "avoid":    ["OPEN_LONG_IMMEDIATELY"],
+    "prefer":   [],
+    "action":   "WAIT_FIRST_15MIN",
+    "note":     "Gap down opening = volatile first 15 min = wait for stabilization",
+    "duration_sessions": 0
+  },
+
+  "US_MARKET_DOWN_1PCT_OVERNIGHT": {
+    "avoid":    ["OPEN_LONG_IMMEDIATELY"],
+    "prefer":   [],
+    "action":   "WAIT_FIRST_30MIN",
+    "note":     "Global sell-off overnight = India opens weak = wait",
+    "duration_sessions": 0
+  },
+
+  "BUDGET_DAY": {
+    "avoid":    ["ALL_DIRECTIONAL"],
+    "prefer":   [],
+    "action":   "BLOCK_TRADING",
+    "note":     "Budget day = extreme volatility = trading blocked",
+    "duration_sessions": 0
+  },
+
+  "RBI_POLICY_DAY": {
+    "avoid":    ["ALL_DIRECTIONAL"],
+    "prefer":   [],
+    "action":   "BLOCK_UNTIL_ANNOUNCEMENT",
+    "note":     "RBI policy = binary outcome = no trades before announcement",
+    "duration_sessions": 0
+  },
+
+  "FNO_EXPIRY_DAY": {
+    "avoid":    ["NEW_LONG_POSITIONS_AFTER_1PM"],
+    "prefer":   [],
+    "action":   "REDUCE_SIZE_50PCT",
+    "note":     "Expiry day = gamma squeezes = erratic moves = careful",
+    "duration_sessions": 0
+  },
+
+  "CIRCUIT_BREAKER_LOWER": {
+    "avoid":    ["ALL_TRADES"],
+    "prefer":   [],
+    "action":   "STOP_ALL_TRADING",
+    "note":     "Market circuit breaker = halt all trading",
+    "duration_sessions": 0
+  },
+
+  "BANKNIFTY_IT_DIVERGE": {
+    "avoid":    ["NIFTY_LONG"],
+    "prefer":   [],
+    "note":     "BankNifty and IT going opposite = index unreliable = wait",
+    "duration_sessions": 0
+  }
+}

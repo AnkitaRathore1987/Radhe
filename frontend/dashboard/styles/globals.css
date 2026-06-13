@@ -1,0 +1,27 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: #080a0e;
+  color: #e0e8f0;
+}
+
+#__next {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar          { width: 4px; height: 4px; }
+::-webkit-scrollbar-track    { background: #0c0e12; }
+::-webkit-scrollbar-thumb    { background: #2a2e38; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: #3a4050; }
+
+/* Selection */
+::selection { background: rgba(64,170,255,0.25); }

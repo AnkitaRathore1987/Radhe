@@ -1,0 +1,15 @@
+{
+  "name": "mini-aladdin-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev":   "next dev -p 4000",
+    "build": "next build",
+    "start": "next start -p 4000"
+  },
+  "dependencies": {
+    "next":    "14.2.3",
+    "react":   "^18.3.0",
+    "react-dom": "^18.3.0"
+  }
+}

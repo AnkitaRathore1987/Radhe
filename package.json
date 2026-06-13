@@ -1,0 +1,42 @@
+{
+  "name": "mini-aladdin",
+  "version": "1.0.0",
+  "description": "Institutional-grade algo trading system for Indian retail market",
+  "main": "backend/gateway/gateway.js",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "gateway":       "node backend/gateway/gateway.js",
+    "killswitch":    "node backend/emergency/kill-switch.js",
+    "worker:price":  "node backend/workers/price-action.js",
+    "worker:volume": "node backend/workers/volume-worker.js",
+    "worker:flow":   "node backend/workers/orderflow-worker.js",
+    "worker:options":"node backend/workers/options-worker.js",
+    "worker:breadth":"node backend/workers/breadth-worker.js",
+    "worker:vol":    "node backend/workers/volatility-worker.js",
+    "worker:news":   "node backend/workers/news-worker.js",
+    "worker:fii":    "node backend/workers/fii-flow-worker.js",
+    "worker:mtf":    "node backend/workers/mtf-worker.js",
+    "master":        "node backend/master/master-agent.js",
+    "risk":          "node backend/risk/risk-agent.js",
+    "execution":     "node backend/execution/execution-agent.js",
+    "shadow":        "node backend/learning/shadow-trading-agent.js",
+    "learning":      "node backend/learning/trade-learning-agent.js",
+    "chaos":         "node backend/chaos/chaos-testing-agent.js",
+    "start":         "node infra/scripts/startup.js",
+    "dev":           "nodemon backend/gateway/gateway.js"
+  },
+  "dependencies": {
+    "ioredis":     "^5.3.2",
+    "ws":          "^8.16.0",
+    "protobufjs":  "^7.2.6",
+    "dotenv":      "^16.4.1",
+    "pg":          "^8.11.3",
+    "node-cron":   "^3.0.3",
+    "axios":       "^1.6.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.3"
+  }
+}
